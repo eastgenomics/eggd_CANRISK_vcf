@@ -1,0 +1,91 @@
+{
+    "name": "eggd_CANRISK_prep",
+    "title": "eggd_CANRISK_prep",
+    "summary": "eggd_CANRISK_prep",
+    "dxapi": "1.0.0",
+    "version": "0.0.1",
+    "inputSpec": [
+      {
+        "name": "sample_vcf",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*vcf.gz"
+        ],
+        "help": ""
+      },
+      {
+        "name": "intervals_file",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*intervals.vcf"
+        ],
+        "help": ""
+      },
+      {
+        "name": "PRS_variants",
+        "label": "file",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      }
+    ],
+    "outputSpec": [
+      {
+        "name": "canrisk_VCF",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      }
+    ],
+    "runSpec": {
+      "timeoutPolicy": {
+        "*": {
+          "hours": 2
+        }
+      },
+      "interpreter": "bash",
+      "file": "src/eggd_CANRISK_prep.sh",
+      "distribution": "Ubuntu",
+      "release": "20.04",
+      "version": "0", 
+      "assetDepends": [
+        {
+          "name": "bedtools",
+          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+          "folder": "/app_assets/bedtools/bedtools_v2.30.0",
+          "version": "2.30.0"
+        },
+        {
+          "name": "python_packages",
+          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+          "folder": "/app_assets/python_packages/python_packages_v1.1.0",
+          "version": "1.1.0"
+        },
+        {
+          "name": "htslib",
+          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+          "folder": "/app_assets/htslib/htslib_v1.15.0",
+          "version": "1.15.0"
+        }
+      ]
+    },
+    "access": {
+      "project": "CONTRIBUTE"
+    },
+    "regionalOptions": {
+      "aws:eu-central-1": {
+        "systemRequirements": {
+          "*": {
+            "instanceType": "mem1_ssd1_v2_x2"
+          }
+        }
+      }
+    }
+  }
