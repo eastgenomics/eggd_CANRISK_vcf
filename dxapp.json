@@ -1,7 +1,7 @@
 {
-    "name": "eggd_CANRISK_prep",
-    "title": "eggd_CANRISK_prep",
-    "summary": "eggd_CANRISK_prep",
+    "name": "eggd_CANRISK_vcf",
+    "title": "eggd_CANRISK_vcf",
+    "summary": "eggd_CANRISK_vcf",
     "dxapi": "1.0.0",
     "version": "0.0.1",
     "inputSpec": [
@@ -10,14 +10,14 @@
         "class": "file",
         "optional": false,
         "patterns": [
-          "*vcf.gz"
+          "*.vcf.gz"
         ],
         "help": ""
       },
       {
         "name": "intervals_file",
         "class": "file",
-        "optional": false,
+        "optional": true,
         "patterns": [
           "*intervals.vcf"
         ],
@@ -25,11 +25,10 @@
       },
       {
         "name": "PRS_variants",
-        "label": "file",
         "class": "file",
         "optional": false,
         "patterns": [
-          "*"
+          "*.prs"
         ],
         "help": ""
       }
@@ -37,6 +36,14 @@
     "outputSpec": [
       {
         "name": "canrisk_VCF",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "CNV_CHECK",
         "class": "file",
         "patterns": [
           "*"
@@ -51,7 +58,7 @@
         }
       },
       "interpreter": "bash",
-      "file": "src/eggd_CANRISK_prep.sh",
+      "file": "src/eggd_CANRISK_vcf.sh",
       "distribution": "Ubuntu",
       "release": "20.04",
       "version": "0", 
@@ -61,12 +68,6 @@
           "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
           "folder": "/app_assets/bedtools/bedtools_v2.30.0",
           "version": "2.30.0"
-        },
-        {
-          "name": "python_packages",
-          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-          "folder": "/app_assets/python_packages/python_packages_v1.1.0",
-          "version": "1.1.0"
         },
         {
           "name": "htslib",
