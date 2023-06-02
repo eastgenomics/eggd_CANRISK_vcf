@@ -50,44 +50,34 @@ main() {
     grep ^# vcf_norm > canrisk_VCF
     grep -v ^# vcf_norm > no_header
 
-    # modify genotypes & alts
+    # make modified vcf
     while read line; do
-        # grab position
-        POSITION=$(printf '%s\t' $line | awk -F '\t' '{ print $1"\t"$2-1"\t"$2 }')
         echo $line
-        # check whether position actually exists in variants bed (sometimes normalised variants are split into non-present positions)
-        if grep -q "$POSITION" PRS_variants.bed; then
-            PRS_REF=$(grep "$POSITION" PRS_variants.bed | awk -F '\t' '{ print $4 }')
-            PRS_ALT=$(grep "$POSITION" PRS_variants.bed | awk -F '\t' '{ print $5 }')
-        else
-            echo Position $POSITION "does not exist in PRS variants bed (probably a split multiallelic indel)"
-            continue
-        fi
-        # grab genotype
-        GENOTYPE=$(printf '%s\t' $line | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
-        # grab sample ref & alt
+        POSITION=$(printf '%s\t' $line | awk -F '\t' '{ print $1"\t"$3 }')
         REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
-        # insert PRS ALT where genotype is 0/0 (sentieon puts . if ref/ref)
-        if $GENOTYPE == '0/0'; then
-            output=$(printf '%s\t' $line | awk -v var="$PRS_ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
-        # if not ref/ref, only print line if ALT is relevant (in PRS list)
-        elif [ $PRS_REF == $REF ] && [ $PRS_ALT == $ALT ]; then
-            output=$(printf '%s\t' $line)
-        # Avoid adding an erroneous 0/0 for the non-PRS allele at multiallelic sites
-        # TODO - this needs to be more robust. Works for EGLH-303 list but what if a subsequent list genuinely contains two variants at the same position?
-        #elif $PREV_POSITION == $POSITION; then
-        #    continue
-        # otherwise (if variant does not match PRS) - change GT to 0/0 and ALT to PRS_ALT
+        echo $POSITION $REF $ALT
+        # TODO - add check for whether variant is in sample? or maybe just grep for position as ref might not be the same for 0/0 indels
+        SAMPLE_LINE=$(grep "$POSITION$(printf '\t').*$(printf '\t')$REF" vcf_norm)
+        GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
+        echo $POSITION $REF $ALT $SAMPLE_LINE $GENOTYPE
+        # check if grep finds the variant
+        if grep -q "$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT" vcf_norm; then
+            var = $(grep -q "$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT" vcf_norm)
+            output=$(printf '%s\t' $var)
+        # if not then check if genotype is 0/0 and add in PRS ALT
+        elif $GENOTYPE == '0/0'; then
+            echo $GENOTYPE
+            output = $(printf '%s\t' $SAMPLE_LINE | awk -v var="$ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
+        # otherwise the VCF is wrong as we should be force genotyping all PRS positions
         else
-            echo Variant $REF ">" $ALT at position $POSITION "is not found in PRS file. Converting to 0/0 genotype for Canrisk."
-            new_fmt=$(printf '%s\t' $line | awk -F '\t' '{ print $10 }' | awk -F ':' '{ st = index($0,":");print "0/0:" substr($0,st+1)}')
-            output=$(printf '%s\t' $line | awk -v var1="$PRS_ALT" -v var2="$new_fmt" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var1"\t"$6"\t"$7"\t"$8"\t"$9"\t"var2 }')
+            echo PRS variant not found in sample VCF. Please check it has been generated correctly.
+            continue
         fi
         # print relevant lines to output file
+        echo $output
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' $output >> canrisk_VCF
-        #PREV_POSITION=$POSITION
-    done < no_header
+    done < PRS_variants.bed
 
     # upload VCF
     canrisk_VCF=$(dx upload canrisk_VCF --brief)
