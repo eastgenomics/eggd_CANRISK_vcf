@@ -52,22 +52,41 @@ main() {
 
     # modify genotypes & alts
     while read line; do
+        # grab position
         POSITION=$(printf '%s\t' $line | awk -F '\t' '{ print $1"\t"$2-1"\t"$2 }')
-        PRS_ALT=$(grep "$POSITION" PRS_variants.bed | awk -F '\t' '{ print $5 }')
+        echo $line
+        # check whether position actually exists in variants bed (sometimes normalised variants are split into non-present positions)
+        if grep -q "$POSITION" PRS_variants.bed; then
+            PRS_REF=$(grep "$POSITION" PRS_variants.bed | awk -F '\t' '{ print $4 }')
+            PRS_ALT=$(grep "$POSITION" PRS_variants.bed | awk -F '\t' '{ print $5 }')
+        else
+            echo Position $POSITION "does not exist in PRS variants bed (probably a split multiallelic indel)"
+            continue
+        fi
+        # grab genotype
         GENOTYPE=$(printf '%s\t' $line | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
+        # grab sample ref & alt
+        REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
-        echo $POSITION $ALT $PRS_ALT
         # insert PRS ALT where genotype is 0/0 (sentieon puts . if ref/ref)
-        if [ $GENOTYPE == '0/0' ]; then
+        if $GENOTYPE == '0/0'; then
             output=$(printf '%s\t' $line | awk -v var="$PRS_ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
         # if not ref/ref, only print line if ALT is relevant (in PRS list)
-        elif [ $PRS_ALT == $ALT ]; then
+        elif [ $PRS_REF == $REF ] && [ $PRS_ALT == $ALT ]; then
             output=$(printf '%s\t' $line)
+        # Avoid adding an erroneous 0/0 for the non-PRS allele at multiallelic sites
+        # TODO - this needs to be more robust. Works for EGLH-303 list but what if a subsequent list genuinely contains two variants at the same position?
+        #elif $PREV_POSITION == $POSITION; then
+        #    continue
+        # otherwise (if variant does not match PRS) - change GT to 0/0 and ALT to PRS_ALT
         else
-            echo PRS_ALT $PRS_ALT does not match sample ALT $ALT, skipping irrelevant variant...
+            echo Variant $REF ">" $ALT at position $POSITION "is not found in PRS file. Converting to 0/0 genotype for Canrisk."
+            new_fmt=$(printf '%s\t' $line | awk -F '\t' '{ print $10 }' | awk -F ':' '{ st = index($0,":");print "0/0:" substr($0,st+1)}')
+            output=$(printf '%s\t' $line | awk -v var1="$PRS_ALT" -v var2="$new_fmt" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var1"\t"$6"\t"$7"\t"$8"\t"$9"\t"var2 }')
         fi
         # print relevant lines to output file
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' $output >> canrisk_VCF
+        #PREV_POSITION=$POSITION
     done < no_header
 
     # upload VCF
