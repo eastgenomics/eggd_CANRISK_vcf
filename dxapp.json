@@ -21,11 +21,11 @@
         "help": ""
       },
       {
-        "name": "intervals_file",
+        "name": "segments_file",
         "class": "file",
         "optional": true,
         "patterns": [
-          "*intervals.vcf"
+          "*segments.vcf"
         ],
         "help": ""
       },
