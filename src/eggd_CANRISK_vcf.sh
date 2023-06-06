@@ -16,9 +16,18 @@ main() {
 
     # TODO - make the above generic. I.e. allow two inputs, a bed OR a PRS file. Convert PRS to bed here if needed, otherwise just use bed.
 
+    # get sample name
+    sample_name=$(basename $sample_vcf_path | awk -F '-' '{ print $1"-"$2 }')
+
     # if segments provided
     #   check if any PRS positions are in a cnv (see process on other page)
     if [ $segments_file_path ]; then
+        # check sample matches vcf
+        segment_sample_name=$(basename $segments_file_path | awk -F '-' '{ print $1"-"$2 }')
+        if ! [ $sample_name == $segment_sample_name ]; then
+            echo "ERROR: sample names do not match between sample vcf and segment vcf"
+            exit 1
+        fi
         # get rid of the header
         grep -v ^# $segments_file_path > segments_no_header.vcf
         # make a list of any intervals that exhibit copy number variation
@@ -65,6 +74,7 @@ main() {
         # check position actually exists & warn if not (all positions should be present)
         if ! [ grep "^$POSITION$(printf '\t')" vcf_norm ]; then
             echo "ERROR: Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
+            exit 1
         fi
         SAMPLE_LINE=$(grep "^$POSITION$(printf '\t')" vcf_norm)
         GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
