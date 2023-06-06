@@ -3,7 +3,7 @@
     "title": "eggd_CANRISK_vcf",
     "summary": "eggd_CANRISK_vcf",
     "dxapi": "1.0.0",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "authorizedUsers": [
         "org-emee_1"
       ],
@@ -41,7 +41,7 @@
     ],
     "outputSpec": [
       {
-        "name": "canrisk_VCF",
+        "name": "canrisk_PRS",
         "class": "file",
         "patterns": [
           "*"
@@ -49,7 +49,15 @@
         "help": ""
       },
       {
-        "name": "CNV_CHECK",
+        "name": "cnv_check",
+        "class": "file",
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      },
+      {
+        "name": "coverage_check",
         "class": "file",
         "patterns": [
           "*"
@@ -74,12 +82,6 @@
           "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
           "folder": "/app_assets/bedtools/bedtools_v2.30.0",
           "version": "2.30.0"
-        },
-        {
-          "name": "htslib",
-          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-          "folder": "/app_assets/htslib/htslib_v1.15.0",
-          "version": "1.15.0"
         }
       ]
     },

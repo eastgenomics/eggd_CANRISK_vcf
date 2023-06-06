@@ -16,7 +16,7 @@ main() {
 
     # TODO - make the above generic. I.e. allow two inputs, a bed OR a PRS file. Convert PRS to bed here if needed, otherwise just use bed.
 
-    # if intervals provided
+    # if segments provided
     #   check if any PRS positions are in a cnv (see process on other page)
     if [ $segments_file_path ]; then
         # get rid of the header
@@ -29,23 +29,22 @@ main() {
             end=$(printf '%s\t' $line | awk -F '\t' '{ print $3 }' | awk -F '_' '{ print $4 }');
             genotype=$(printf '%s\t' $line | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }');
             echo $chrome $start $end $genotype
-            # mprint relevant lines to file (GT = 1 or 2 if DEL/DUP)
+            # print relevant lines to file (GT = 1 or 2 if DEL/DUP)
             if ! [ $genotype == '0/0' ]; then
-                echo "      found"
                 printf '%s\t%s\t%s\n' $chrom $start $end >> found_cnvs.bed;
             fi;
         done < segments_no_header.vcf
         # check whether any of the CNVs cover any PRS variants of interest
         bedtools intersect -a PRS_variants.bed -b found_cnvs.bed > intersect.bed
         # get proper details of any PRS variants found & alert the user via output file
-        echo "The following PRS variants are potentially found within a CNV. Please investigate further." > CNV_CHECK.txt
+        echo "The following PRS variants are potentially found within a CNV. Please investigate further." > cnv_check.txt
         while read line; do
             variant=$(printf '%s\t' $line | awk -F '\t' '{print $1","$3}');
-            grep $variant $PRS_variants_path >> CNV_CHECK.txt;
+            grep $variant $PRS_variants_path >> cnv_check.txt;
         done < intersect.bed
-        echo "End of file" > CNV_CHECK.txt
+        echo -e "\nEnd of file" >> cnv_check.txt
     else
-        echo "CNV checking was not requested for this sample." > CNV_CHECK.txt
+        echo "CNV checking was not requested for this sample." > cnv_check.txt
     fi
 
     # norm/decompose vcf to split multi-allelics
@@ -59,9 +58,15 @@ main() {
         POSITION=$(printf '%s\t' $line | awk -F '\t' '{ print $1"\t"$3 }')
         REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
-        # TODO - add check for whether variant is in sample? or maybe just grep for position as ref might not be the same for 0/0 indels
         SAMPLE_LINE=$(grep "^$POSITION$(printf '\t')" vcf_norm)
         GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
+        DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $3 }')
+        # check depth is over 20x & record if not
+        echo "The following PRS positions are not covered to 20x:" > coverage_check.txt
+        echo -e "# CHROM\tPOS\tDP" >> coverage_check.txt
+        if [ $DEPTH < 20 ]; then
+            echo $POSITION "\t" $DEPTH >> coverage_check.txt
+        fi
         # check if grep finds the variant
         if grep -q "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT" vcf_norm; then
             var=$(grep "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT" vcf_norm)
@@ -71,20 +76,20 @@ main() {
             output=$(printf '%s\t' $SAMPLE_LINE | awk -v var="$ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
         # otherwise the VCF is wrong as we should be force genotyping all PRS positions
         else
-            output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -F '\t' '{ print $1"\t"$2"\t.\t"var1"\t"var2"\t.\t.\t.\tGT\t0/0" }')
+            output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -v var3="$DEPTH" -F '\t' '{ print $1"\t"$2"\t.\t"var1"\t"var2"\t.\t.\t.\tGT:DP\t0/0:"var3 }')
             echo "PRS variant not found in sample VCF. Adding line to say sample is 0/0 at this position."
         fi
         # print relevant lines to output file
-        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' $output >> canrisk_VCF
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' $output >> canrisk_PRS.vcf
     done < PRS_variants.bed
-
-    # check coverage for all relevant variants
-
+    echo -e "\nEnd of file" >> coverage_check.txt
 
     # upload VCF
-    canrisk_VCF=$(dx upload canrisk_VCF --brief)
-    cnv_check=$(dx upload CNV_CHECK.txt --brief)
-    dx-jobutil-add-output canrisk_VCF "$canrisk_VCF" --class=file
-    dx-jobutil-add-output CNV_CHECK "$cnv_check" --class=file
+    canrisk_VCF=$(dx upload canrisk_PRS.vcf --brief)
+    cnv_check=$(dx upload cnv_check.txt --brief)
+    coverage_check=$(dx upload coverage_check.txt --brief)
+    dx-jobutil-add-output canrisk_PRS "$canrisk_VCF" --class=file
+    dx-jobutil-add-output cnv_check "$cnv_check" --class=file
+    dx-jobutil-add-output coverage_check "$coverage_check" --class=file
 
 }

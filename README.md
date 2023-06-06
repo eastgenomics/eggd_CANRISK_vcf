@@ -9,7 +9,7 @@ It also informs the user if any PRS variants are located in a CNV in that sample
 
 - VCF from Sentieon (called against PRS bed as targets)
 - PRS file from CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)
-- Intervals file from CEN CNV calling (optional)
+- Segments file from CEN CNV calling (optional)
 
 ## How does this app work?
 
@@ -23,6 +23,6 @@ A single VCF with the PRS name appended to the VCF name.
 
 ## What limitations does this app have?
 
-This assumes the provided VCF is already limited to the PRS variants list.
+This assumes the provided VCF is already limited to the PRS variants list, and contains a genotype for all those variants.
 
 ## This app was created by East Genomics GLH
