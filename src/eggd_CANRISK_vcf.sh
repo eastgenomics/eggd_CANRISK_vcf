@@ -53,6 +53,10 @@ main() {
     # grab header
     grep ^# vcf_norm > canrisk_VCF
 
+    # initiate coverage file
+    echo "The following PRS positions are not covered to 20x:" > coverage_check.txt
+    echo -e "# CHROM\tPOS\tDP" >> coverage_check.txt
+
     # make modified vcf
     while read line; do
         POSITION=$(printf '%s\t' $line | awk -F '\t' '{ print $1"\t"$3 }')
@@ -60,16 +64,14 @@ main() {
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
         # check position actually exists & warn if not (all positions should be present)
         if ! [ grep "^$POSITION$(printf '\t')" vcf_norm ]; then
-            echo "Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
+            echo "ERROR: Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
         fi
         SAMPLE_LINE=$(grep "^$POSITION$(printf '\t')" vcf_norm)
         GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
         DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $3 }')
         # check depth is over 20x & record if not
-        echo "The following PRS positions are not covered to 20x:" > coverage_check.txt
-        echo -e "# CHROM\tPOS\tDP" >> coverage_check.txt
-        if [ $DEPTH < 20 ]; then
-            echo $POSITION "\t" $DEPTH >> coverage_check.txt
+        if [ $DEPTH -lt 20 ]; then
+            echo -e $POSITION "\t" $DEPTH >> coverage_check.txt
         fi
         # check if grep finds the variant
         if grep -q "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT$(printf '\t')" vcf_norm; then
