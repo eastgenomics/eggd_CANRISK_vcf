@@ -82,6 +82,12 @@
           "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
           "folder": "/app_assets/bedtools/bedtools_v2.30.0",
           "version": "2.30.0"
+        },
+        {
+          "name": "htslib",
+          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+          "folder": "/app_assets/htslib/htslib_v1.15.0",
+          "version": "1.15.0"
         }
       ]
     },
@@ -98,3 +104,4 @@
       }
     }
   }
+  

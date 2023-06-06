@@ -58,6 +58,10 @@ main() {
         POSITION=$(printf '%s\t' $line | awk -F '\t' '{ print $1"\t"$3 }')
         REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
+        # check position actually exists & warn if not (all positions should be present)
+        if ! [ grep "^$POSITION$(printf '\t')" vcf_norm ]; then
+            echo "Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
+        fi
         SAMPLE_LINE=$(grep "^$POSITION$(printf '\t')" vcf_norm)
         GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
         DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $3 }')
@@ -68,8 +72,8 @@ main() {
             echo $POSITION "\t" $DEPTH >> coverage_check.txt
         fi
         # check if grep finds the variant
-        if grep -q "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT" vcf_norm; then
-            var=$(grep "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT" vcf_norm)
+        if grep -q "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT$(printf '\t')" vcf_norm; then
+            var=$(grep "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT$(printf '\t')" vcf_norm)
             output=$(printf '%s\t' $var)
         # if not then check if genotype is 0/0 and add in PRS ALT
         elif [ $GENOTYPE == '0/0' ]; then
