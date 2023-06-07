@@ -9,7 +9,7 @@ It also informs the user if any PRS variants are located in a CNV in that sample
 
 - VCF from Sentieon (called against PRS bed as targets)
 - PRS file from CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)
-- Segments file from CEN CNV calling (optional)
+- Segments VCF from GATK gCNV (optional)
 
 ## How does this app work?
 

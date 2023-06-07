@@ -44,7 +44,7 @@
         "name": "canrisk_PRS",
         "class": "file",
         "patterns": [
-          "*"
+          "*canrisk_PRS.vcf"
         ],
         "help": ""
       },
@@ -52,7 +52,7 @@
         "name": "cnv_check",
         "class": "file",
         "patterns": [
-          "*"
+          "*cnv_check.txt"
         ],
         "help": ""
       },
@@ -60,7 +60,7 @@
         "name": "coverage_check",
         "class": "file",
         "patterns": [
-          "*"
+          "*coverage_check.txt"
         ],
         "help": ""
       }
