@@ -85,7 +85,7 @@ main() {
             if [ $i == "GT" ]; then GT_INDEX=$idx
             elif [ $i == "DP" ]; then DP_INDEX=$idx
             fi
-            let "idx++"
+            let "idx = idx + 1"
         done
         # get GT & DP values
         GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$GT_INDEX" '{ print var }')
