@@ -21,15 +21,15 @@ main() {
 
     # if segments provided
     #   check if any PRS positions are in a cnv (see process on other page)
-    if [ $segments_file_path ]; then
+    if [ $segments_vcf_path ]; then
         # check sample matches vcf
-        segment_sample_name=$(basename $segments_file_path | awk -F '-' '{ print $1"-"$2 }')
+        segment_sample_name=$(basename $segments_vcf_path | awk -F '-' '{ print $1"-"$2 }')
         if ! [ $sample_name == $segment_sample_name ]; then
             echo "ERROR: sample names do not match between sample vcf and segment vcf"
             exit 1
         fi
         # get rid of the header
-        grep -v ^# $segments_file_path > segments_no_header.vcf
+        grep -v ^# $segments_vcf_path > segments_no_header.vcf
         # make a list of any intervals that exhibit copy number variation
         touch found_cnvs.bed
         while read line; do 
@@ -57,10 +57,10 @@ main() {
     fi
 
     # norm/decompose vcf to split multi-allelics
-    bcftools norm -m- $sample_vcf_path > vcf_norm
+    bcftools norm -m- $sample_vcf_path > norm.vcf
 
     # grab header
-    grep ^# vcf_norm > "$sample_name"_canrisk_PRS.vcf
+    grep ^# norm.vcf > "$sample_name"_canrisk_PRS.vcf
 
     # initiate coverage file
     echo "The following PRS positions are not covered to 20x:" > "$sample_name"_coverage_check.txt
@@ -72,25 +72,36 @@ main() {
         REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
         # check position actually exists & warn if not (all positions should be present)
-        if ! grep -q "^$POSITION$(printf '\t')" vcf_norm; then
+        if ! grep -qP "^$POSITION\t" norm.vcf; then
             echo "ERROR: Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
             exit 1
         fi
-        SAMPLE_LINE=$(grep "^$POSITION$(printf '\t')" vcf_norm)
-        GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }')
-        DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $3 }')
+        SAMPLE_LINE=$(grep -P "^$POSITION\t" norm.vcf)
+        # get GT & DP indices
+        FMT=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $9 }')
+        IFS=':' read -ra FIELD <<< "$FMT"
+        idx=0
+        for i in "${FIELD[@]}"; do
+            if [ $i == "GT" ]; then GT_INDEX=$idx
+            elif [ $i == "DP" ]; then DP_INDEX=$idx
+            fi
+            let "idx++"
+        done
+        # get GT & DP values
+        GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$GT_INDEX" '{ print var }')
+        DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$DP_INDEX" '{ print var }')
         # check depth is over 20x & record if not
         if [ $DEPTH -lt 20 ]; then
             echo -e $POSITION "\t" $DEPTH >> "$sample_name"_coverage_check.txt
         fi
         # check if grep finds the variant
-        if grep -q "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT$(printf '\t')" vcf_norm; then
-            var=$(grep "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT$(printf '\t')" vcf_norm)
+        if grep -qP "^$POSITION\t.*\t$REF\t$ALT\t" norm.vcf; then
+            var=$(grep -P "^$POSITION\t.*\t$REF\t$ALT\t" norm.vcf)
             output=$(printf '%s\t' $var)
         # if not then check if genotype is 0/0 and add in PRS ALT
         elif [ $GENOTYPE == '0/0' ]; then
             output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"var1"\t"var2"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
-        # otherwise the VCF is wrong as we should be force genotyping all PRS positions
+        # otherwise PRS is not present so we recode as 0/0
         else
             output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -v var3="$DEPTH" -F '\t' '{ print $1"\t"$2"\t.\t"var1"\t"var2"\t.\t.\t.\tGT:DP\t0/0:"var3 }')
             echo "PRS variant not found in sample VCF. Adding line to say sample is 0/0 at this position."

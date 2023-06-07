@@ -18,16 +18,16 @@
         "patterns": [
           "*.vcf.gz"
         ],
-        "help": ""
+        "help": "VCF output of Sentieon DNASEQ (FASTQ>VCF). Must be contain genotypes for all positions specified in the PRS file."
       },
       {
-        "name": "segments_file",
+        "name": "segments_vcf",
         "class": "file",
         "optional": true,
         "patterns": [
           "*segments.vcf"
         ],
-        "help": ""
+        "help": "GATK gCNV segments vcf"
       },
       {
         "name": "PRS_variants",
@@ -36,7 +36,7 @@
         "patterns": [
           "*.prs"
         ],
-        "help": ""
+        "help": "Comma separated PRS targets from Canrisk site. Must contain at least CHROM, POS, REF, & ALT fields."
       }
     ],
     "outputSpec": [
