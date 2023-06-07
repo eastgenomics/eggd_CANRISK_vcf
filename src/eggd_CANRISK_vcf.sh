@@ -88,8 +88,9 @@ main() {
             let "idx = idx + 1"
         done
         # get GT & DP values
-        GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$GT_INDEX" '{ print var }')
-        DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$DP_INDEX" '{ print var }')
+        FMT_VALUES=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }')
+        GENOTYPE=$(awk -v var="$GT_INDEX" -vt="${FMT_VALUES[*]}" 'BEGIN{n=split(t,a,":"); print a[var]}')
+        DEPTH=$(awk -v var="$DP_INDEX" -vt="${FMT_VALUES[*]}" 'BEGIN{n=split(t,a,":"); print a[var]}')
         # check depth is over 20x & record if not
         if [ $DEPTH -lt 20 ]; then
             echo -e $POSITION "\t" $DEPTH >> "$sample_name"_coverage_check.txt
