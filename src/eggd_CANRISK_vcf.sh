@@ -72,7 +72,7 @@ main() {
         REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
         # check position actually exists & warn if not (all positions should be present)
-        if ! [ grep "^$POSITION$(printf '\t')" vcf_norm ]; then
+        if ! grep -q "^$POSITION$(printf '\t')" vcf_norm; then
             echo "ERROR: Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
             exit 1
         fi
@@ -89,7 +89,7 @@ main() {
             output=$(printf '%s\t' $var)
         # if not then check if genotype is 0/0 and add in PRS ALT
         elif [ $GENOTYPE == '0/0' ]; then
-            output=$(printf '%s\t' $SAMPLE_LINE | awk -v var="$ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"$4"\t"var"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
+            output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"var1"\t"var2"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
         # otherwise the VCF is wrong as we should be force genotyping all PRS positions
         else
             output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -v var3="$DEPTH" -F '\t' '{ print $1"\t"$2"\t.\t"var1"\t"var2"\t.\t.\t.\tGT:DP\t0/0:"var3 }')
