@@ -46,25 +46,25 @@ main() {
         # check whether any of the CNVs cover any PRS variants of interest
         bedtools intersect -a PRS_variants.bed -b found_cnvs.bed > intersect.bed
         # get proper details of any PRS variants found & alert the user via output file
-        echo "The following PRS variants are potentially found within a CNV. Please investigate further." > cnv_check.txt
+        echo "The following PRS variants are potentially found within a CNV. Please investigate further." > "$sample_name"_cnv_check.txt
         while read line; do
             variant=$(printf '%s\t' $line | awk -F '\t' '{print $1","$3}');
-            grep $variant $PRS_variants_path >> cnv_check.txt;
+            grep $variant $PRS_variants_path >> "$sample_name"_cnv_check.txt;
         done < intersect.bed
-        echo -e "\nEnd of file" >> cnv_check.txt
+        echo -e "\nEnd of file" >> "$sample_name"_cnv_check.txt
     else
-        echo "CNV checking was not requested for this sample." > cnv_check.txt
+        echo "CNV checking was not requested for this sample." > "$sample_name"_cnv_check.txt
     fi
 
     # norm/decompose vcf to split multi-allelics
     bcftools norm -m- $sample_vcf_path > vcf_norm
 
     # grab header
-    grep ^# vcf_norm > canrisk_VCF
+    grep ^# vcf_norm > "$sample_name"_canrisk_PRS.vcf
 
     # initiate coverage file
-    echo "The following PRS positions are not covered to 20x:" > coverage_check.txt
-    echo -e "# CHROM\tPOS\tDP" >> coverage_check.txt
+    echo "The following PRS positions are not covered to 20x:" > "$sample_name"_coverage_check.txt
+    echo -e "# CHROM\tPOS\tDP" >> "$sample_name"_coverage_check.txt
 
     # make modified vcf
     while read line; do
@@ -81,7 +81,7 @@ main() {
         DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $3 }')
         # check depth is over 20x & record if not
         if [ $DEPTH -lt 20 ]; then
-            echo -e $POSITION "\t" $DEPTH >> coverage_check.txt
+            echo -e $POSITION "\t" $DEPTH >> "$sample_name"_coverage_check.txt
         fi
         # check if grep finds the variant
         if grep -q "^$POSITION$(printf '\t').*$(printf '\t')$REF$(printf '\t')$ALT$(printf '\t')" vcf_norm; then
@@ -96,14 +96,14 @@ main() {
             echo "PRS variant not found in sample VCF. Adding line to say sample is 0/0 at this position."
         fi
         # print relevant lines to output file
-        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' $output >> canrisk_PRS.vcf
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' $output >> "$sample_name"_canrisk_PRS.vcf
     done < PRS_variants.bed
-    echo -e "\nEnd of file" >> coverage_check.txt
+    echo -e "\nEnd of file" >> "$sample_name"_coverage_check.txt
 
     # upload VCF
-    canrisk_VCF=$(dx upload canrisk_PRS.vcf --brief)
-    cnv_check=$(dx upload cnv_check.txt --brief)
-    coverage_check=$(dx upload coverage_check.txt --brief)
+    canrisk_VCF=$(dx upload "$sample_name"_canrisk_PRS.vcf --brief)
+    cnv_check=$(dx upload "$sample_name"_cnv_check.txt --brief)
+    coverage_check=$(dx upload "$sample_name"_coverage_check.txt --brief)
     dx-jobutil-add-output canrisk_PRS "$canrisk_VCF" --class=file
     dx-jobutil-add-output cnv_check "$cnv_check" --class=file
     dx-jobutil-add-output coverage_check "$coverage_check" --class=file
