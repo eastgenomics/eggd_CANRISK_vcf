@@ -80,7 +80,7 @@ main() {
         # get GT & DP indices
         FMT=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $9 }')
         IFS=':' read -ra FIELD <<< "$FMT"
-        idx=0
+        idx=1
         for i in "${FIELD[@]}"; do
             if [ $i == "GT" ]; then GT_INDEX=$idx
             elif [ $i == "DP" ]; then DP_INDEX=$idx
@@ -91,6 +91,7 @@ main() {
         FMT_VALUES=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }')
         GENOTYPE=$(awk -v var="$GT_INDEX" -vt="${FMT_VALUES[*]}" 'BEGIN{n=split(t,a,":"); print a[var]}')
         DEPTH=$(awk -v var="$DP_INDEX" -vt="${FMT_VALUES[*]}" 'BEGIN{n=split(t,a,":"); print a[var]}')
+        echo $GENOTYPE $DEPTH
         # check depth is over 20x & record if not
         if [ $DEPTH -lt 20 ]; then
             echo -e $POSITION "\t" $DEPTH >> "$sample_name"_coverage_check.txt
