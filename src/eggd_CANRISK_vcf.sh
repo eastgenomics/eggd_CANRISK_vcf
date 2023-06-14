@@ -8,6 +8,10 @@ main() {
     # Download inputs from DNAnexus in parallel, these will be downloaded to /home/dnanexus/in/
     dx-download-all-inputs --parallel
 
+    # zip and fasta reference properly
+    zcat $reference_fasta_path | bgzip -c > ref.bgz
+
+
     ### PROCESS
 
     # make the bed file chr, start and end, then remove the first rows
@@ -37,7 +41,6 @@ main() {
             start=$(printf '%s\t' $line | awk -F '\t' '{ print $3 }' | awk -F '_' '{ print $3 }');
             end=$(printf '%s\t' $line | awk -F '\t' '{ print $3 }' | awk -F '_' '{ print $4 }');
             genotype=$(printf '%s\t' $line | awk -F '\t' '{ print $10 }' | awk -F ':' '{ print $1 }');
-            echo $chrome $start $end $genotype
             # print relevant lines to file (GT = 1 or 2 if DEL/DUP)
             if ! [ $genotype == '0/0' ]; then
                 printf '%s\t%s\t%s\n' $chrom $start $end >> found_cnvs.bed;
@@ -57,7 +60,7 @@ main() {
     fi
 
     # norm/decompose vcf to split multi-allelics
-    bcftools norm -m- $sample_vcf_path > norm.vcf
+    bcftools norm -m- -f ref.bgz -cs $sample_vcf_path > norm.vcf
 
     # grab header
     grep ^# norm.vcf > "$sample_name"_canrisk_PRS.vcf
@@ -80,16 +83,17 @@ main() {
         # get GT & DP indices
         FMT=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $9 }')
         IFS=':' read -ra FIELD <<< "$FMT"
-        idx=0
+        idx=1
         for i in "${FIELD[@]}"; do
             if [ $i == "GT" ]; then GT_INDEX=$idx
             elif [ $i == "DP" ]; then DP_INDEX=$idx
             fi
-            let "idx++"
+            let "idx = idx + 1"
         done
         # get GT & DP values
-        GENOTYPE=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$GT_INDEX" '{ print var }')
-        DEPTH=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }' | awk -F ':' -v var="$DP_INDEX" '{ print var }')
+        FMT_VALUES=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $10 }')
+        GENOTYPE=$(awk -v var="$GT_INDEX" -vt="${FMT_VALUES[*]}" 'BEGIN{n=split(t,a,":"); print a[var]}')
+        DEPTH=$(awk -v var="$DP_INDEX" -vt="${FMT_VALUES[*]}" 'BEGIN{n=split(t,a,":"); print a[var]}')
         # check depth is over 20x & record if not
         if [ $DEPTH -lt 20 ]; then
             echo -e $POSITION "\t" $DEPTH >> "$sample_name"_coverage_check.txt

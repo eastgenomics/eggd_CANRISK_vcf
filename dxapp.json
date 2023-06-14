@@ -16,9 +16,18 @@
         "class": "file",
         "optional": false,
         "patterns": [
-          "*.vcf.gz"
+          "*.vcf.gz, *.vcf"
         ],
         "help": "VCF output of Sentieon DNASEQ (FASTQ>VCF). Must be contain genotypes for all positions specified in the PRS file."
+      },
+      {
+        "name": "reference_fasta",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*.fa.gz,"
+        ],
+        "help": "Fasta reference genome e.g. hs37d5.fa.gz."
       },
       {
         "name": "segments_vcf",
