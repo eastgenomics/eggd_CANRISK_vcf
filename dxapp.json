@@ -22,6 +22,24 @@
         ]
       },
       {
+        "name": "segments_vcf",
+        "help": "VCF output of GATK gCNV (segments)",
+        "class": "file",
+        "optional": true,
+        "patterns": [
+          "*segments.vcf"
+        ]
+      },
+      {
+        "name": "PRS_variants",
+        "help": "BED file of PRS targets from Canrisk site. Must contain at least CHROM, POS, REF & ALT fields.",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*.bed"
+        ]
+      },
+      {
         "name": "reference_fasta",
         "help": "Reference genome file, without chr in the chromosome number",
         "class": "file",
@@ -55,24 +73,6 @@
             "project": "project-F3zxk7Q4F30Xp8fG69K1Vppj",
             "path": "/H. Sapiens - GRCh37 - hs37d5 (1000 Genomes Phase II)"
           }
-        ]
-      },
-      {
-        "name": "segments_vcf",
-        "help": "VCF output of GATK gCNV (segments)",
-        "class": "file",
-        "optional": true,
-        "patterns": [
-          "*segments.vcf"
-        ]
-      },
-      {
-        "name": "PRS_variants",
-        "help": "BED file of PRS targets from Canrisk site. Must contain at least CHROM, POS, REF & ALT fields.",
-        "class": "file",
-        "optional": false,
-        "patterns": [
-          "*.bed"
         ]
       }
     ],
