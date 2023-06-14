@@ -1,9 +1,10 @@
 {
     "name": "eggd_CANRISK_vcf",
     "title": "eggd_CANRISK_vcf",
-    "summary": "eggd_CANRISK_vcf",
-    "dxapi": "1.0.0",
+    "summary": "App to convert VCF output from sentieon Haplotyper for PRS variants to a format compatible with the CANRISK tool",
     "version": "1.0.0",
+    "whatsNew": "* v1.0.0 Initial release of the app;",
+    "dxapi": "1.0.0",
     "authorizedUsers": [
         "org-emee_1"
       ],
@@ -54,24 +55,21 @@
         "class": "file",
         "patterns": [
           "*canrisk_PRS.vcf"
-        ],
-        "help": ""
+        ]
       },
       {
         "name": "cnv_check",
         "class": "file",
         "patterns": [
           "*cnv_check.txt"
-        ],
-        "help": ""
+        ]
       },
       {
         "name": "coverage_check",
         "class": "file",
         "patterns": [
           "*coverage_check.txt"
-        ],
-        "help": ""
+        ]
       }
     ],
     "runSpec": {
