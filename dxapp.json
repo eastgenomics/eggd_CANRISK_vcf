@@ -14,39 +14,66 @@
     "inputSpec": [
       {
         "name": "sample_vcf",
+        "help": "VCF output of Sentieon-dnaseq (FASTQ>VCF). Must contain genotypes for all positions specified in the PRS file.",
         "class": "file",
         "optional": false,
         "patterns": [
           "*.vcf.gz, *.vcf"
-        ],
-        "help": "VCF output of Sentieon DNASEQ (FASTQ>VCF). Must be contain genotypes for all positions specified in the PRS file."
+        ]
       },
       {
         "name": "reference_fasta",
+        "help": "Reference genome file, without chr in the chromosome number",
         "class": "file",
         "optional": false,
         "patterns": [
           "*.fa.gz,"
         ],
-        "help": "Fasta reference genome e.g. hs37d5.fa.gz."
+        "suggestions": [
+          {
+            "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+            "path": "/genomes/"
+          },
+          {
+            "project": "project-F3zxk7Q4F30Xp8fG69K1Vppj",
+            "path": "/H. Sapiens - GRCh37 - hs37d5 (1000 Genomes Phase II)"
+          }
+        ]
+      },
+      {
+        "name": "reference_fasta_index",
+        "help": "Reference genome fasta index file",
+        "class": "file",
+        "optional": false,
+        "patterns": ["*.fa.fai"],
+        "suggestions": [
+          {
+            "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+            "path": "/genomes/"
+          },
+          {
+            "project": "project-F3zxk7Q4F30Xp8fG69K1Vppj",
+            "path": "/H. Sapiens - GRCh37 - hs37d5 (1000 Genomes Phase II)"
+          }
+        ]
       },
       {
         "name": "segments_vcf",
+        "help": "VCF output of GATK gCNV (segments)",
         "class": "file",
         "optional": true,
         "patterns": [
           "*segments.vcf"
-        ],
-        "help": "GATK gCNV segments vcf"
+        ]
       },
       {
         "name": "PRS_variants",
+        "help": "BED file of PRS targets from Canrisk site. Must contain at least CHROM, POS, REF & ALT fields.",
         "class": "file",
         "optional": false,
         "patterns": [
-          "*.prs"
-        ],
-        "help": "Comma separated PRS targets from Canrisk site. Must contain at least CHROM, POS, REF, & ALT fields."
+          "*.bed"
+        ]
       }
     ],
     "outputSpec": [
@@ -111,4 +138,3 @@
       }
     }
   }
-  
