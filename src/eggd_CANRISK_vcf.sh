@@ -9,7 +9,7 @@ main() {
     dx-download-all-inputs --parallel
 
     ### PREPARE
-    # mark-section "Preparing reference genome files"
+    mark-section "Preparing reference genome files"
     # move reference genome files to /home/dnanexus/
     mv $reference_fasta_path /home/dnanexus/ref_gen.fa.gz
     mv $reference_fasta_index_path /home/dnanexus/ref_gen.fa.fai
@@ -20,7 +20,7 @@ main() {
     # zcat $reference_fasta_path | bgzip -c > ref.bgz
 
     # normalise/decompose VCF to split multi-allelics
-    # mark-section "Normalising input VCF"
+    mark-section "Normalising input VCF"
     bcftools norm -m- -f ref_gen.fa -cs $sample_vcf_path > norm.vcf
 
     # get sample name
@@ -34,7 +34,7 @@ main() {
     # if segments file input is provided, check if any PRS positions are in a CNV
     # by converting CNV coordinates to a bed file
     if [ $segments_vcf_path ]; then
-        # mark-section "Checking for overlapping CNV"
+        mark-section "Checking for overlapping CNVs"
         # check CNV VCF filename matches sample from input VCF
         segment_sample_name=$(basename $segments_vcf_path | awk -F '-' '{ print $1"-"$2 }')
         # TODO future proofing for Epic naming, split on "_" instead?
@@ -62,7 +62,7 @@ main() {
     fi
 
     ## 2. check coverage:
-    # mark-section "Checking for low coverage"
+    mark-section "Checking for low coverage"
     # identify variants with low coverage (<20 DP)
     # parse their coordinates to a bed file (bcftools query)
     bcftools filter -i 'INFO/DP<20' norm.vcf | \
@@ -83,9 +83,12 @@ main() {
 
 
     ## 3. convert VCF file:
-    # mark-section "Converting input VCF"
+    mark-section "Converting input VCF"
+    # exclude low covered PRS variants?
+    bcftools filter -e 'INFO/DP<20' norm.vcf > norm_cov.vcf
+
     # grab header
-    grep ^# norm.vcf > "$sample_name"_canrisk_PRS.vcf
+    grep ^# norm_cov.vcf > "$sample_name"_canrisk_PRS.vcf
 
     grep -v ^# $PRS_variants_path > PRS.bed
 
@@ -95,11 +98,11 @@ main() {
         REF=$(printf '%s\t' $line | awk -F '\t' '{ print $4 }')
         ALT=$(printf '%s\t' $line | awk -F '\t' '{ print $5 }')
         # check position actually exists & warn if not (all positions should be present)
-        if ! grep -qP "^$POSITION\t" norm.vcf; then
+        if ! grep -qP "^$POSITION\t" norm_cov.vcf; then
             echo "ERROR: Position $POSITION not found in sample vcf - please ensure it has been formed correctly."
             exit 1
         fi
-        SAMPLE_LINE=$(grep -P "^$POSITION\t" norm.vcf)
+        SAMPLE_LINE=$(grep -P "^$POSITION\t" norm_cov.vcf)
         # get GT & DP indices
         FORMAT=$(printf '%s\t' $SAMPLE_LINE | awk -F '\t' '{ print $9 }')
         IFS=':' read -ra FIELD <<< "$FORMAT"
@@ -121,20 +124,20 @@ main() {
         #     # TODO DITCH/remove/exclude records where depth < 20x
         # fi
         # check if grep finds the variant
-        if grep -qP "^$POSITION\t.*\t$REF\t$ALT\t" norm.vcf; then
-            var=$(grep -P "^$POSITION\t.*\t$REF\t$ALT\t" norm.vcf)
+        if grep -qP "^$POSITION\t.*\t$REF\t$ALT\t" norm_cov.vcf; then
+            var=$(grep -P "^$POSITION\t.*\t$REF\t$ALT\t" norm_cov.vcf)
             output=$(printf '%s\t' $var)
-            echo "variant is in norm"
+            echo "variant is in norm_cov"
             echo $output
         # if not then check if genotype is 0/0 and add in PRS ALT
         elif [ $GENOTYPE == '0/0' ]; then
             output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -F '\t' '{ print $1"\t"$2"\t"$3"\t"var1"\t"var2"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }')
-            echo "variant is NOT in norm, and has GT==0/0"
+            echo "variant is NOT in norm_cov, and has GT==0/0"
             echo $output
         # otherwise PRS is not present so we recode as 0/0
         else
             output=$(printf '%s\t' $SAMPLE_LINE | awk -v var1="$REF" -v var2="$ALT" -v var3="$DEPTH" -F '\t' '{ print $1"\t"$2"\t.\t"var1"\t"var2"\t.\t.\t.\tGT:DP\t0/0:"var3 }')
-            echo "variant is NOT in norm, and NOT GT==0/0"
+            echo "variant is NOT in norm_cov, and NOT GT==0/0"
             echo "PRS variant not found in sample VCF. Adding line to say sample is 0/0 at this position."
             echo $output
         fi
@@ -143,7 +146,7 @@ main() {
     done < PRS.bed
 
     ### OUTPUTS
-    # mark-section "Uploading output files"
+    mark-section "Uploading output files"
     # upload files
     canrisk_VCF=$(dx upload "$sample_name"_canrisk_PRS.vcf --brief)
     cnv_check=$(dx upload "$sample_name"_cnv_check.txt --brief)
@@ -154,6 +157,6 @@ main() {
     dx-jobutil-add-output coverage_check "$coverage_check" --class=file
 
 	dx-upload-all-outputs --parallel
-	# mark-success
+	mark-success
 
 }
