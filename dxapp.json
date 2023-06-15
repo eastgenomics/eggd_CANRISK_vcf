@@ -31,13 +31,12 @@
       ]
     },
     {
-      "name": "PRS_variants",
-      "help": "BED file of PRS targets from Canrisk site. Must contain at least CHROM, POS, REF & ALT fields.",
-      "class": "file",
-      "optional": false,
-      "patterns": [
-        "*.bed"
-      ]
+      "name": "depth",
+      "label": "minimum depth threshold",
+      "help": "minimum number of reads a variant should be supported by from the VCF",
+      "class": "string",
+      "optional": true,
+      "default": "20"
     },
     {
       "name": "reference_fasta",

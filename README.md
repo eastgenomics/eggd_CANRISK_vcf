@@ -7,20 +7,21 @@ which is noted in text output files. Furthermore, the app generates a VCF format
 
 ## What inputs are required for this app to run?
 
-- sample VCF from Sentieon Haplotyper (called against PRS bed as targets)
-- BED of positions relevant for PRS from CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)
+- sample VCF from Sentieon Haplotyper (called against PRS variants)
 - segments VCF from GATK gCNV (optional)
+- a read depth threshold can be set (optional, defaults to 20)
 
 ## How does this app work?
 
 The app normalises multiallelic variants and modifies the VCF to include ALTs in 0/0 positions.
 If required, it also checks the segments file using bedtools intersect, to see if any relevant variants are in CNVs.
+Read depth of the called variants is checked and low covered ones are reported in a text output file.
 
 
 ## What does this app output?
 
 - a modified VCF compatible with CANRISK, with "PRS" appended to the file name.
-- a text file listing PRS positions that are not covered at 20x
+- a text file listing PRS positions that are covered at less than input depth (default 20x)
 - a text file listing PRS positions that are affected by an overlapping CNV
 
 ## What limitations does this app have?
