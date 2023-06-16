@@ -37,6 +37,14 @@
       "class": "string",
       "optional": true,
       "default": "20"
+    },
+    {
+      "name": "exclude",
+      "label": "Exclude variants covered below minimum depth threshold",
+      "help": "whether low covered variants should be excluded from output VCF",
+      "class": "boolean",
+      "optional": true,
+      "default": true
     }
   ],
   "outputSpec": [

@@ -57,11 +57,19 @@ main() {
     echo -e "\nEnd of file" >> "$sample_name"_coverage_check.txt
 
     ## 3. filter VCF file:
-    # TODO make exclusion optional
-    mark-section "Filtering PRS VCF"
-    # exclude low covered PRS variants
-    bcftools filter -e $filter $sample_vcf_path > "$sample_name"_canrisk_PRS.vcf
-    echo "Retained $(grep -v ^# "$sample_name"_canrisk_PRS.vcf | wc -l) variants after depth filtering"
+    case $exclude in
+    (true)
+        mark-section "Filtering PRS VCF by coverage"
+        # exclude low covered PRS variants
+        bcftools filter -e $filter $sample_vcf_path > "$sample_name"_canrisk_PRS.vcf
+        echo "Retained $(grep -v ^# "$sample_name"_canrisk_PRS.vcf | wc -l) variants after depth filtering"
+        ;;
+    (false)
+        mark-section "Renaming unfiltered PRS VCF"
+        mv $sample_vcf_path "$sample_name"_canrisk_PRS.vcf
+        echo "Retained all variants"
+        ;;
+    esac
 
     ### OUTPUTS
     mark-section "Uploading output files"
