@@ -20,8 +20,8 @@ Read depth of the called variants is checked and low covered ones are reported i
 
 ## What does this app output?
 
-- a modified VCF compatible with CANRISK, with "PRS" appended to the file name.
-- a text file listing PRS positions that are covered at less than input depth (default 20x)
+- a filtered VCF compatible with CANRISK, excluding variants that do not reach the coverage threshold specified
+- a text file listing excluded variants that are covered at less than input depth (default 20x)
 - a text file listing PRS positions that are affected by an overlapping CNV
 
 ## What limitations does this app have?
