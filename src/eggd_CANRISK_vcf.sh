@@ -3,8 +3,8 @@
 set -exo pipefail
 
 main() {
-    ### INPUTS
 
+    ### INPUTS
     # Download inputs from DNAnexus in parallel, these will be downloaded to /home/dnanexus/in/
     dx-download-all-inputs --parallel
 
@@ -32,7 +32,7 @@ main() {
             bcftools query -f '%CHROM\t%POS\t%INFO/END\n' > CNV_coords.bed
 
         # check whether any of the CNVs cover any PRS variants of interest
-        bedtools intersect -a $PRS_variants_path -b CNV_coords.bed > CNV_intersect.bed
+        bedtools intersect -a $sample_vcf_path -b CNV_coords.bed > PRS_intersect_CNV.tsv
 
         # write list of affected PRS positions to output file
         echo "The following PRS variants are potentially found within a CNV. Please investigate further." > "$sample_name"_cnv_check.txt
@@ -56,7 +56,6 @@ main() {
     # write relevant info about affected variants from filtered VCF
     bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%DP\n' low_cov_PRS.vcf  >> "$sample_name"_coverage_check.txt
     echo -e "\nEnd of file" >> "$sample_name"_coverage_check.txt
-
 
     ## 3. convert VCF file:
     mark-section "Filtering PRS VCF"
