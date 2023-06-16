@@ -13,14 +13,14 @@ which is noted in text output files. Furthermore, the app generates a VCF format
 
 ## How does this app work?
 
-The app normalises multiallelic variants and modifies the VCF to include ALTs in 0/0 positions.
-If required, it also checks the segments file using bedtools intersect, to see if any relevant variants are in CNVs.
-Read depth of the called variants is checked and low covered ones are reported in a text output file.
+PRS variants are filtered based on read depth (optional input) and variants below the threshold are reported in a text output file.
+If required, it also checks the CNV segments file using bedtools intersect, to see if any PRS variants are in CNVs.
+Optionally, PRS variants are excluded from the output VCF (default behaviour). Otherwise all variants are retained in the output VCF.
 
 
 ## What does this app output?
 
-- a filtered VCF compatible with CANRISK, excluding variants that do not reach the coverage threshold specified
+- a filtered VCF compatible with CANRISK, excluding variants that do not reach the coverage threshold specified (by default)
 - a text file listing excluded variants that are covered at less than input depth (default 20x)
 - a text file listing PRS positions that are affected by an overlapping CNV
 
