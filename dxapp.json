@@ -1,116 +1,111 @@
 {
-    "name": "eggd_CANRISK_vcf",
-    "title": "eggd_CANRISK_vcf",
-    "summary": "eggd_CANRISK_vcf",
-    "dxapi": "1.0.0",
-    "version": "1.0.0",
-    "authorizedUsers": [
-        "org-emee_1"
-      ],
-      "developers":[
-        "org-emee_1"
-      ],
-    "inputSpec": [
-      {
-        "name": "sample_vcf",
-        "class": "file",
-        "optional": false,
-        "patterns": [
-          "*.vcf.gz, *.vcf"
-        ],
-        "help": "VCF output of Sentieon DNASEQ (FASTQ>VCF). Must be contain genotypes for all positions specified in the PRS file."
-      },
-      {
-        "name": "reference_fasta",
-        "class": "file",
-        "optional": false,
-        "patterns": [
-          "*.fa.gz,"
-        ],
-        "help": "Fasta reference genome e.g. hs37d5.fa.gz."
-      },
-      {
-        "name": "segments_vcf",
-        "class": "file",
-        "optional": true,
-        "patterns": [
-          "*segments.vcf"
-        ],
-        "help": "GATK gCNV segments vcf"
-      },
-      {
-        "name": "PRS_variants",
-        "class": "file",
-        "optional": false,
-        "patterns": [
-          "*.prs"
-        ],
-        "help": "Comma separated PRS targets from Canrisk site. Must contain at least CHROM, POS, REF, & ALT fields."
-      }
+  "name": "eggd_canrisk_vcf",
+  "title": "eggd_canrisk_vcf",
+  "summary": "App to convert VCF output from sentieon Haplotyper for PRS variants to a format compatible with the CANRISK tool",
+  "version": "1.0.0",
+  "whatsNew": "* v1.0.0 Initial release of the app;",
+  "dxapi": "1.0.0",
+  "authorizedUsers": [
+      "org-emee_1"
     ],
-    "outputSpec": [
-      {
-        "name": "canrisk_PRS",
-        "class": "file",
-        "patterns": [
-          "*canrisk_PRS.vcf"
-        ],
-        "help": ""
-      },
-      {
-        "name": "cnv_check",
-        "class": "file",
-        "patterns": [
-          "*cnv_check.txt"
-        ],
-        "help": ""
-      },
-      {
-        "name": "coverage_check",
-        "class": "file",
-        "patterns": [
-          "*coverage_check.txt"
-        ],
-        "help": ""
-      }
+    "developers":[
+      "org-emee_1"
     ],
-    "runSpec": {
-      "timeoutPolicy": {
-        "*": {
-          "hours": 2
-        }
-      },
-      "interpreter": "bash",
-      "file": "src/eggd_CANRISK_vcf.sh",
-      "distribution": "Ubuntu",
-      "release": "20.04",
-      "version": "0", 
-      "assetDepends": [
-        {
-          "name": "bedtools",
-          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-          "folder": "/app_assets/bedtools/bedtools_v2.30.0",
-          "version": "2.30.0"
-        },
-        {
-          "name": "htslib",
-          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-          "folder": "/app_assets/htslib/htslib_v1.15.0",
-          "version": "1.15.0"
-        }
+  "inputSpec": [
+    {
+      "name": "sample_vcf",
+      "help": "VCF output of Sentieon-dnaseq (FASTQ>VCF). Must contain genotypes for all positions specified in the PRS file.",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.vcf.gz, *.vcf"
       ]
     },
-    "access": {
-      "project": "CONTRIBUTE"
+    {
+      "name": "segments_vcf",
+      "help": "VCF output of GATK gCNV (segments)",
+      "class": "file",
+      "optional": true,
+      "patterns": [
+        "*segments.vcf"
+      ]
     },
-    "regionalOptions": {
-      "aws:eu-central-1": {
-        "systemRequirements": {
-          "*": {
-            "instanceType": "mem1_ssd1_v2_x2"
-          }
+    {
+      "name": "depth",
+      "label": "minimum depth threshold",
+      "help": "minimum number of reads a variant should be supported by from the VCF",
+      "class": "string",
+      "optional": true,
+      "default": "20"
+    },
+    {
+      "name": "exclude",
+      "label": "Exclude variants covered below minimum depth threshold",
+      "help": "whether low covered variants should be excluded from output VCF",
+      "class": "boolean",
+      "optional": true,
+      "default": true
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "canrisk_PRS",
+      "class": "file",
+      "patterns": [
+        "*canrisk_PRS.vcf"
+      ]
+    },
+    {
+      "name": "cnv_check",
+      "class": "file",
+      "patterns": [
+        "*cnv_check.txt"
+      ]
+    },
+    {
+      "name": "coverage_check",
+      "class": "file",
+      "patterns": [
+        "*coverage_check.txt"
+      ]
+    }
+  ],
+  "runSpec": {
+    "timeoutPolicy": {
+      "*": {
+        "hours": 2
+      }
+    },
+    "interpreter": "bash",
+    "file": "src/eggd_CANRISK_vcf.sh",
+    "distribution": "Ubuntu",
+    "release": "20.04",
+    "version": "0", 
+    "assetDepends": [
+      {
+        "name": "bedtools",
+        "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+        "folder": "/app_assets/bedtools/bedtools_v2.30.0",
+        "version": "2.30.0"
+      },
+      {
+        "name": "htslib",
+        "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
+        "folder": "/app_assets/htslib/htslib_v1.15.0",
+        "version": "1.15.0"
+      }
+    ]
+  },
+  "access": {
+    "project": "CONTRIBUTE"
+  },
+  "regionalOptions": {
+    "aws:eu-central-1": {
+      "systemRequirements": {
+        "*": {
+          "instanceType": "mem1_ssd1_v2_x2"
         }
       }
     }
   }
-  
+}
