@@ -34,8 +34,8 @@ main() {
         bedtools intersect -a $sample_vcf_path -b CNV_coords.bed > PRS_intersect_CNV.tsv
 
         # write list of affected PRS variants to output file
-        echo "The following PRS variants are potentially found within a CNV. Please investigate further." > "$sample_name"_cnv_check.txt
-        echo -e "#CHROM\tPOS\tREF\tALT" >> "$sample_name"_cnv_check.txt
+        echo "The following PRS variants are located within a CNV call in this sample:" > "$sample_name"_cnv_check.txt
+        echo -e "\n#CHROM\tPOS\tREF\tALT" >> "$sample_name"_cnv_check.txt
         # write relevant info about affected variants
         cut -f 1,2,4,5 PRS_intersect_CNV.tsv >> "$sample_name"_cnv_check.txt
         echo -e "\nEnd of file" >> "$sample_name"_cnv_check.txt
@@ -50,17 +50,18 @@ main() {
     bcftools filter -i $filter $sample_vcf_path > low_cov_PRS.vcf
 
     # write list of affected PRS variants to output file
-    echo "The following PRS variants are not covered to $depth x:" > "$sample_name"_coverage_check.txt
-    echo -e "#CHROM\tPOS\tREF\tALT\tDP" >> "$sample_name"_coverage_check.txt
+    echo "The following PRS variants are not covered to $depth x read depth:" > "$sample_name"_coverage_check.txt
+    echo -e "\n#CHROM\tPOS\tREF\tALT\tDP" >> "$sample_name"_coverage_check.txt
     # write relevant info about affected variants from filtered VCF
     bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%DP\n' low_cov_PRS.vcf  >> "$sample_name"_coverage_check.txt
     echo -e "\nEnd of file" >> "$sample_name"_coverage_check.txt
 
-    ## 3. convert VCF file:
+    ## 3. filter VCF file:
+    # TODO make exclusion optional
     mark-section "Filtering PRS VCF"
     # exclude low covered PRS variants
     bcftools filter -e $filter $sample_vcf_path > "$sample_name"_canrisk_PRS.vcf
-    grep -v ^# "$sample_name"_canrisk_PRS.vcf | wc -l
+    echo "Retained $(grep -v ^# "$sample_name"_canrisk_PRS.vcf | wc -l) variants after depth filtering"
 
     ### OUTPUTS
     mark-section "Uploading output files"
