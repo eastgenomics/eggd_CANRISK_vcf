@@ -66,7 +66,7 @@ main() {
         ;;
     (false)
         mark-section "Renaming unfiltered PRS VCF"
-        mv $sample_vcf_path "$sample_name"_canrisk_PRS.vcf
+        gunzip $sample_vcf_path > "$sample_name"_canrisk_PRS.vcf
         echo "Retained all variants"
         ;;
     esac
