@@ -14,13 +14,12 @@ main() {
     sample_name=$(basename $sample_vcf_path | awk -F '_' '{ print $1 }')
 
     ## 1. check CNV overlap:
-    # if segments file input is provided, check if any PRS positions are in a CNV
+    # if segments file input is provided, check if any PRS variants are in a CNV
     # by converting CNV coordinates to a bed file
     if [ $segments_vcf_path ]; then
         mark-section "Checking for overlapping CNVs"
         # check CNV VCF filename matches sample from input VCF
-        segment_sample_name=$(basename $segments_vcf_path | awk -F '-' '{ print $1"-"$2 }')
-        # TODO future proofing for Epic naming, split on "_" instead?
+        segment_sample_name=$(basename $segments_vcf_path | awk -F '_' '{ print $1 }')
         if ! [ $sample_name == $segment_sample_name ]; then
             echo "ERROR: sample names do not match between sample VCF and segment VCF"
             exit 1
@@ -34,11 +33,11 @@ main() {
         # check whether any of the CNVs cover any PRS variants of interest
         bedtools intersect -a $sample_vcf_path -b CNV_coords.bed > PRS_intersect_CNV.tsv
 
-        # write list of affected PRS positions to output file
+        # write list of affected PRS variants to output file
         echo "The following PRS variants are potentially found within a CNV. Please investigate further." > "$sample_name"_cnv_check.txt
-        # with header from PRS bed
-        grep "#" $PRS_variants_path >> "$sample_name"_cnv_check.txt
-        cat CNV_intersect.bed >> "$sample_name"_cnv_check.txt
+        echo -e "#CHROM\tPOS\tREF\tALT" >> "$sample_name"_cnv_check.txt
+        # write relevant info about affected variants
+        cut -f 1,2,4,5 PRS_intersect_CNV.tsv >> "$sample_name"_cnv_check.txt
         echo -e "\nEnd of file" >> "$sample_name"_cnv_check.txt
     else
         echo "CNV checking was not performed for this sample." > "$sample_name"_cnv_check.txt
