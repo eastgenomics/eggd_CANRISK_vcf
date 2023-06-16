@@ -37,42 +37,6 @@
       "class": "string",
       "optional": true,
       "default": "20"
-    },
-    {
-      "name": "reference_fasta",
-      "help": "Reference genome file, without chr in the chromosome number",
-      "class": "file",
-      "optional": false,
-      "patterns": [
-        "*.fa.gz,"
-      ],
-      "suggestions": [
-        {
-          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-          "path": "/genomes/"
-        },
-        {
-          "project": "project-F3zxk7Q4F30Xp8fG69K1Vppj",
-          "path": "/H. Sapiens - GRCh37 - hs37d5 (1000 Genomes Phase II)"
-        }
-      ]
-    },
-    {
-      "name": "reference_fasta_index",
-      "help": "Reference genome fasta index file",
-      "class": "file",
-      "optional": false,
-      "patterns": ["*.fa.fai"],
-      "suggestions": [
-        {
-          "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-          "path": "/genomes/"
-        },
-        {
-          "project": "project-F3zxk7Q4F30Xp8fG69K1Vppj",
-          "path": "/H. Sapiens - GRCh37 - hs37d5 (1000 Genomes Phase II)"
-        }
-      ]
     }
   ],
   "outputSpec": [
