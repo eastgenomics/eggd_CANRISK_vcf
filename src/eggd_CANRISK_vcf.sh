@@ -53,7 +53,7 @@ main() {
     echo "The following PRS variants are not covered to $depth x read depth:" > "$sample_name"_coverage_check.txt
     echo -e "\n#CHROM\tPOS\tREF\tALT\tDP" >> "$sample_name"_coverage_check.txt
     # write relevant info about affected variants from filtered VCF
-    bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%DP\n' low_cov_PRS.vcf  >> "$sample_name"_coverage_check.txt
+    bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t[%DP]\n' low_cov_PRS.vcf  >> "$sample_name"_coverage_check.txt
     echo -e "\nEnd of file" >> "$sample_name"_coverage_check.txt
 
     ## 3. filter VCF file:
