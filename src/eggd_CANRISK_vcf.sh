@@ -48,6 +48,10 @@ main() {
     # identify variants with low coverage (below depth threshold input)
     filter="FORMAT/DP<$depth"
     bcftools filter -i $filter $sample_vcf_path > low_cov_PRS.vcf
+    # modify low coverage genotypes to ./.
+    grep ^# ../low_cov_PRS.vcf > ../low_cov_dotdot.vcf
+    grep -v ^# ../low_cov_PRS.vcf | awk '{sub(/[01]\/[01]/,"./.",$10); print $1,"\t",$2,"\t",$3,"\t",$4,"\t",$5,"\t",$6,"\t",$7,"\t",$8,"\t",$9,"\t",$10 }' >> ../low_cov_dotdot.vcf
+
 
     # write list of affected PRS variants to output file
     echo "The following PRS variants are not covered to $depth x read depth:" > "$sample_name"_coverage_check.txt
@@ -61,13 +65,16 @@ main() {
     (true)
         mark-section "Filtering PRS VCF by coverage"
         # exclude low covered PRS variants
-        bcftools filter -e $filter $sample_vcf_path > "$sample_name"_canrisk_PRS.vcf
-        echo "Retained $(grep -v ^# "$sample_name"_canrisk_PRS.vcf | wc -l) variants after depth filtering"
+        bcftools filter -e $filter $sample_vcf_path > good_cov.vcf
+        # add back modified variants (low depth) & sort
+        grep -v ^# low_cov_dotdot.vcf >> good_cov.vcf
+        bcftools sort good_cov.vcf > "$sample_name"_canrisk_PRS.vcf
+        echo " $(grep -v ^# "low_cov_dotdot.vcf | wc -l) variants changed to './.' after depth filtering"
         ;;
     (false)
         mark-section "Renaming unfiltered PRS VCF"
         gunzip -c $sample_vcf_path > "$sample_name"_canrisk_PRS.vcf
-        echo "Retained all variants"
+        echo "All variants passed depth filtering"
         ;;
     esac
 
