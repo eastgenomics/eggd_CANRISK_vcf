@@ -89,6 +89,14 @@
       "patterns": [
         "*coverage_check.txt"
       ]
+    },
+    {
+      "name": "uncalled_check",
+      "class": "file",
+      "optional": true,
+      "patterns": [
+        "*uncalled_variants_check.txt"
+      ]
     }
   ],
   "runSpec": {
