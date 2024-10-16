@@ -133,7 +133,7 @@ main() {
     fi
 
     mark-section "Checking for uncalled PRS variants"
-    bcftools filter -e 'FORMAT/GT=="./."' "$sample_vcf_path" | \
+    bcftools filter -i 'FORMAT/GT=="./."' "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > uncalled_coords.tsv
 
     if [ -s uncalled_coords.tsv ]; then
