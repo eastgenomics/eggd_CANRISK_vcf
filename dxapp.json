@@ -52,7 +52,7 @@
     {
       "name": "convert_gt_low_dp",
       "label": "Convert the genotypes of low depth variants to 0/0",
-      "help": "whether the genotpyes of low depth (specified by the minimum depth input) variants are converted to 0/0. Cannot =true if exclude=true",
+      "help": "whether the genotpyes of low depth (specified by the minimum depth input) variants are converted to 0/0.",
       "class": "boolean",
       "optional": true,
       "default": true

@@ -9,7 +9,8 @@ convert_gt () {
     output_name=$3
     regions_file=$4
 
-    # make vcf containing non-selected variants
+    # make vcf containing non-selected variants, the ^ causes everything which
+    # does not intersect the regions file to be used
     bcftools isec "$original_vcf" -T ^"$regions_file" -w1 -o intersect_removed.vcf
 
     # convert selected variant's genotypes to 0/0
@@ -128,16 +129,32 @@ main() {
             echo "No CNVs called in PRS regions"
         fi
     else
-        echo "No segment provided, therefore no CNV checking was performed for this sample."
+        echo "No segment VCF provided, therefore no CNV checking was performed for this sample."
+    fi
+
+    mark-section "Checking for uncalled PRS variants"
+    bcftools filter -e 'FORMAT/GT=="./."' "$sample_vcf_path" | \
+        bcftools query -f '%CHROM\t%POS\n' > uncalled_coords.tsv
+
+    if [ -s uncalled_coords.tsv ]; then
+        if $convert_gt_no_call; then
+            mark-section "Converting genotype of uncalled PRS variants to 0/0"
+            bcftools filter -e 'FORMAT/GT=="./."' "$segments_vcf_path" | \
+                bcftools view -H -o PRS_intersect_uncalled.tsv
+
+            convert_gt "$sample_vcf_path" PRS_intersect_uncalled.tsv "$sample_vcf_path" uncalled_coords.tsv
+
+        else
+            echo "Genotypes of uncalled PRS variants were not converted to 0/0"
+        fi
+    else
+        echo "No uncalled variants found in the sample VCF"
     fi
 
     gunzip -c "$sample_vcf_path" > "$sample_name"_canrisk_PRS.vcf
 
-    if $convert_gt_no_call; then
-        mark-section "Converting genotype of uncalled PRS variants to 0/0"
-        sed -i 's/\.\/\./0\/0/g' "$sample_name"_canrisk_PRS.vcf
-    fi
-
+    # Modify variant representation for specific variants to represent them
+    # non-parsimoniously as is required by Canrisk
     sed -i 's/4\t84370124\trs10718573\tTA\tT/4\t84370124\trs10718573\tTAA\tTA/' "$sample_name"_canrisk_PRS.vcf
     sed -i 's/22\t38583315\trs138179519\tA\tAAAAG/22\t38583315\trs138179519\tAAAAG\tAAAAGAAAG/' "$sample_name"_canrisk_PRS.vcf
 
