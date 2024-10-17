@@ -2,8 +2,11 @@
   "name": "eggd_canrisk_vcf",
   "title": "eggd_canrisk_vcf",
   "summary": "App to convert VCF output from sentieon Haplotyper for PRS variants to a format compatible with the CANRISK tool",
-  "version": "1.0.0",
-  "whatsNew": "* v1.0.0 Initial release of the app;",
+  "version": "1.1.0",
+  "whatsNew": {
+    "v1.0.0": "Initial release of the app",
+    "v1.1.0": "Optional conversion of uncertain genotypes to 0/0, GT info added to check files and no longer output them if empty, removed exclude variants input"
+  },
   "dxapi": "1.0.0",
   "authorizedUsers": [
       "org-emee_1"
@@ -39,9 +42,25 @@
       "default": "20"
     },
     {
-      "name": "exclude",
-      "label": "Exclude variants covered below minimum depth threshold",
-      "help": "whether low covered variants should be excluded from output VCF",
+      "name": "convert_gt_cnv",
+      "label": "Convert the genotypes of variants within CNVs to 0/0",
+      "help": "whether the genotpyes of variants should be converted to 0/0 if CNV has been called in that region",
+      "class": "boolean",
+      "optional": true,
+      "default": true
+    },
+    {
+      "name": "convert_gt_low_dp",
+      "label": "Convert the genotypes of low depth variants to 0/0",
+      "help": "whether the genotpyes of low depth (specified by the minimum depth input) variants are converted to 0/0.",
+      "class": "boolean",
+      "optional": true,
+      "default": true
+    },
+    {
+      "name": "convert_gt_no_call",
+      "label": "Convert ./. genotypes to 0/0 ",
+      "help": "whether ./. genotpyes are converted to 0/0",
       "class": "boolean",
       "optional": true,
       "default": true
@@ -58,6 +77,7 @@
     {
       "name": "cnv_check",
       "class": "file",
+      "optional": true,
       "patterns": [
         "*cnv_check.txt"
       ]
@@ -65,8 +85,17 @@
     {
       "name": "coverage_check",
       "class": "file",
+      "optional": true,
       "patterns": [
         "*coverage_check.txt"
+      ]
+    },
+    {
+      "name": "uncalled_check",
+      "class": "file",
+      "optional": true,
+      "patterns": [
+        "*uncalled_variants_check.txt"
       ]
     }
   ],
@@ -80,7 +109,7 @@
     "file": "src/eggd_CANRISK_vcf.sh",
     "distribution": "Ubuntu",
     "release": "20.04",
-    "version": "0", 
+    "version": "0",
     "assetDepends": [
       {
         "name": "bedtools",
