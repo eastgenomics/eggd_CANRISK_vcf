@@ -78,12 +78,6 @@ main() {
         bcftools isec "$sample_vcf_path" -T uncalled_coords.tsv -w1 | \
                 bcftools query -f '[%CHROM\t%POS\t%REF\t%ALT\t%GT\n]' >> "$sample_name"_uncalled_variants_check.txt
 
-        if $convert_gt_no_call; then
-            mark-section "Converting genotype of uncalled PRS variants to 0/0"
-            convert_gt "$sample_vcf_path" uncalled_coords.tsv
-        else
-            echo "Genotypes of uncalled PRS variants were not converted to 0/0"
-        fi
     else
         echo "No uncalled variants found in the sample VCF"
     fi
@@ -105,12 +99,6 @@ main() {
         bcftools query -f '[%CHROM\t%POS\t%REF\t%ALT\t%DP\t%GT\n]' low_cov_PRS.vcf >> "$sample_name"_coverage_check.txt
         echo -e "\nEnd of file" >> "$sample_name"_coverage_check.txt
 
-        if $convert_gt_low_dp; then
-            mark-section "Converting low coverage PRS variant genotypes to 0/0"
-            convert_gt "$sample_vcf_path" low_dp_coords.tsv
-        else
-            echo "Genotypes of low coverage PRS variants were not converted to 0/0"
-        fi
     else
         echo "No low coverage variants present in sample VCF"
     fi
@@ -144,17 +132,38 @@ main() {
 
             echo -e "\nEnd of file" >> "$sample_name"_cnv_check.txt
 
-            if $convert_gt_cnv; then
-                mark-section "Converting genotype of CNV intersected PRS variants to 0/0"
-                convert_gt "$sample_vcf_path" "CNV_coords.bed"
-            else
-                echo "Genotypes of CNV intersecting PRS variants were not converted to 0/0"
-            fi
         else
             echo "No CNVs called in PRS regions"
         fi
     else
         echo "No segment VCF provided, therefore no CNV checking was performed for this sample."
+    fi
+
+    # Modify VCF
+    mark-section "Modifying GTs where neccessary"
+    if [ -s uncalled_coords.tsv ]; then
+        if $convert_gt_no_call; then
+            mark-section "Converting genotype of uncalled PRS variants to 0/0"
+            convert_gt "$sample_vcf_path" uncalled_coords.tsv
+        else
+            echo "Genotypes of uncalled PRS variants were not converted to 0/0"
+        fi
+    fi
+    if [ -s low_dp_coords.tsv ]; then
+        if $convert_gt_low_dp; then
+            mark-section "Converting low coverage PRS variant genotypes to 0/0"
+            convert_gt "$sample_vcf_path" low_dp_coords.tsv
+        else
+            echo "Genotypes of low coverage PRS variants were not converted to 0/0"
+        fi
+    fi
+    if [ -s CNV_coords.bed ]; then
+        if $convert_gt_cnv; then
+            mark-section "Converting genotype of CNV intersected PRS variants to 0/0"
+            convert_gt "$sample_vcf_path" "CNV_coords.bed"
+        else
+            echo "Genotypes of CNV intersecting PRS variants were not converted to 0/0"
+        fi
     fi
 
     gunzip -c "$sample_vcf_path" > "$sample_name"_canrisk_PRS.vcf
