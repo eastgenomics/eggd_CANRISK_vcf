@@ -36,7 +36,7 @@ convert_gt () {
     # check that all GTs have been converted
     gt=$(bcftools isec to_be_checked.vcf.gz -T "$regions_file" -w1 | \
         bcftools query -f '[%GT\n]' | sort | uniq)
-    if [[ "$gt" != "0/0" ]]; then
+    if [[ "$gt" != "0/0" && "$gt" != "0" ]]; then
         echo "ERROR: failed to convert GT values"
         exit 1
     fi
