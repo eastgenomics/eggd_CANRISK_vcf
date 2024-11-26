@@ -159,7 +159,7 @@ main() {
             echo "Genotypes of low coverage PRS variants were not converted to 0/0"
         fi
     fi
-    if [ -s CNV_coords.bed ]; then
+    if [ -s CNV_overlaps.tsv ]; then
         if $convert_gt_cnv; then
             mark-section "Converting genotype of CNV intersected PRS variants to 0/0"
             convert_gt "$sample_vcf_path" "CNV_coords.bed"
