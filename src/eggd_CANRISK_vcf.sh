@@ -116,10 +116,12 @@ main() {
         # by converting CNV coordinates to a bed file
         # identify CNVs from the segments VCF (bcftools filter)
         # parse their coordinates to a bed file (bcftools query)
+        # check for overlaps between that and the sample (PRS) vcf (bcftools isec)
         bcftools filter -e 'FORMAT/GT=="0/0"' "$segments_vcf_path" | \
             bcftools query -f '%CHROM\t%POS\t%INFO/END\n' > CNV_coords.bed
+        bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | grep -v ^# > CNV_overlaps.tsv
 
-        if [ -s CNV_coords.bed ]; then
+        if [ -s CNV_overlaps.tsv ]; then
             mark-section "Writing CNV check file"
 
             # write list of affected PRS variants to output file
