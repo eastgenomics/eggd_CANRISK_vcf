@@ -36,7 +36,7 @@ convert_gt () {
     # check that all GTs have been converted
     gt=$(bcftools isec to_be_checked.vcf.gz -T "$regions_file" -w1 | \
         bcftools query -f '[%GT\n]' | sort | uniq)
-    if [[ "$gt" != "0/0" && "$gt" != "0" ]]; then
+    if [[ "$gt" != "0/0" ]]; then
         echo "ERROR: failed to convert GT values"
         exit 1
     fi
@@ -68,7 +68,7 @@ main() {
     tabix -f "$sample_vcf_path"
 
     mark-section "Checking for uncalled PRS variants"
-    bcftools filter -i 'FORMAT/GT=="./."' "$sample_vcf_path" | \
+    bcftools filter -i 'FORMAT/GT=="./." && CHROM!="X"' "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > uncalled_coords.tsv
 
     if [ -s uncalled_coords.tsv ]; then
@@ -84,7 +84,7 @@ main() {
 
     mark-section "Checking for low coverage"
     # identify variants with low coverage (below depth threshold input)
-    filter="FORMAT/DP<$depth"
+    filter="FORMAT/DP<$depth && CHROM!="X""
     bcftools filter -i "$filter" "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > low_dp_coords.tsv
 
@@ -117,9 +117,11 @@ main() {
         # identify CNVs from the segments VCF (bcftools filter)
         # parse their coordinates to a bed file (bcftools query)
         # check for overlaps between that and the sample (PRS) vcf (bcftools isec)
-        bcftools filter -e 'FORMAT/GT=="0/0"' "$segments_vcf_path" | \
+        bcftools filter -e 'FORMAT/GT=="0/0" && CHROM=="X"' "$segments_vcf_path" | \
             bcftools query -f '%CHROM\t%POS\t%INFO/END\n' > CNV_coords.bed
+        if [ -s CNV_coords.bed ]; then
         bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | grep -v ^# > CNV_overlaps.tsv
+        fi
 
         if [ -s CNV_overlaps.tsv ]; then
             mark-section "Writing CNV check file"
