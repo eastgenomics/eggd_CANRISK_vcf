@@ -84,8 +84,7 @@ main() {
 
     mark-section "Checking for low coverage"
     # identify variants with low coverage (below depth threshold input)
-    filter="FORMAT/DP<$depth && CHROM!="X""
-    bcftools filter -i "$filter" "$sample_vcf_path" | \
+    bcftools filter -i 'FORMAT/DP<$depth && CHROM!="X"' "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > low_dp_coords.tsv
 
     if [ -s low_dp_coords.tsv ]; then
