@@ -6,7 +6,7 @@
   "whatsNew": {
     "v1.0.0": "Initial release of the app",
     "v1.1.0": "Optional conversion of uncertain genotypes to 0/0, GT info added to check files and no longer output them if empty, removed exclude variants input",
-    "v1.1.1": "Bugfix to handle male samples where GT is 0 (on X) instead of 0/0 (also ./. or .)"
+    "v1.1.1": "Bugfix to handle male samples (single X) by ignoring all X variants (none in PRS anyway). Improved CNV checking to verify segment overlap with PRS variants."
   },
   "dxapi": "1.0.0",
   "authorizedUsers": [
