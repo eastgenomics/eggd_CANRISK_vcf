@@ -68,7 +68,7 @@ main() {
     tabix -f "$sample_vcf_path"
 
     mark-section "Checking for uncalled PRS variants"
-    bcftools filter -i 'FORMAT/GT=="./." && CHROM!="X"' "$sample_vcf_path" | \
+    bcftools filter -i 'FORMAT/GT=="./."' "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > uncalled_coords.tsv
 
     if [ -s uncalled_coords.tsv ]; then
@@ -84,14 +84,14 @@ main() {
 
     mark-section "Checking for low coverage"
     # identify variants with low coverage (below depth threshold input)
-    bcftools filter -i "FORMAT/DP<$depth && CHROM!='X'" "$sample_vcf_path" | \
+    bcftools filter -i "FORMAT/DP<$depth" "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > low_dp_coords.tsv
 
     if [ -s low_dp_coords.tsv ]; then
 
         mark-section "Writing coverage check file"
         # write list of affected PRS variants to output file
-        bcftools filter -i "FORMAT/DP<$depth && CHROM!='X'" "$sample_vcf_path" > low_cov_PRS.vcf
+        bcftools filter -i "FORMAT/DP<$depth" "$sample_vcf_path" > low_cov_PRS.vcf
         echo "The following PRS variants are not covered to $depth x read depth:" > "$sample_name"_coverage_check.txt
         echo -e "\n#CHROM\tPOS\tREF\tALT\tDP\tGT" >> "$sample_name"_coverage_check.txt
         # write relevant info about affected variants from filtered VCF
@@ -119,7 +119,7 @@ main() {
         bcftools filter -e 'FORMAT/GT=="0/0" || CHROM=="X"' "$segments_vcf_path" | \
             bcftools query -f '%CHROM\t%POS\t%INFO/END\n' > CNV_coords.bed
         if [ -s CNV_coords.bed ]; then
-        bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | bcftools view -H > CNV_overlaps.tsv
+        bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | bcftools view -H -o CNV_overlaps.tsv
         fi
 
         if [ -s CNV_overlaps.tsv ]; then
