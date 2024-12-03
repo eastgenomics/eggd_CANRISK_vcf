@@ -2,11 +2,13 @@
 
 ## What does this app do?
 
-First, it checks for PRS variants which were not able to be called (i.e. that have a GT = ./.) and records these variants in a .txt file. If no variants are found no .txt is outputted. If requested via the `convert_gt_no_call` input (default is `true`), their genotypes are converted to 0/0.
+First, it checks for PRS variants which were not able to be called (i.e. that have a GT = ./.) and records these variants in a .txt file. If no variants are found no .txt is outputted.
 
-Next, read depths of PRS variants are inspected and variants below the threshold are reported in a text output file. If no PRS variants with sub-threshold read depth exist, then no coverage check text file is outputted. Optionally, these variants with sub-threshold read depth may have their genotype converted to 0/0, as specified by the `convert_gt_low_dp` input (default is `true`).
+Next, read depths of PRS variants are inspected and variants below the threshold are reported in a text output file. If no PRS variants with sub-threshold read depth exist, then no coverage check text file is outputted.
 
-After this, it checks the CNV segments file (if provided) to see if any PRS variants are in CNVs. Details of these variants are outputted in a text file, if no such variants are present then no text file is outputted. PRS variants which occur in CNVs can optionally have their genotype converted to 0/0 as specified by the `convert_gt_cnv` input (default is `true`).
+After this, it checks the CNV segments file (if provided) to see if any PRS variants are in CNVs. Details of these variants are outputted in a text file, if no such variants are present then no text file is outputted. CNV segments on ChrX are ignored as there are no X variants in the PRS list.
+
+If requested via the `convert_gt_no_call`, `convert_gt_low_dp`, or `convert_gt_cnv` inputs (default is `true`), their genotypes are converted to 0/0.
 
 Lastly, the app outputs a VCF formatted to be compatible with the [CanRisk tool](https://www.canrisk.org/canrisk_tool/).
 
@@ -21,11 +23,13 @@ Lastly, the app outputs a VCF formatted to be compatible with the [CanRisk tool]
 
 
 ## How does this app work?
-The app first identifies variants which were unable to be called via `bcftools filter` using the condition `FORMAT/GT=="./."`. If such variants are found, a .txt file containing a description of the variants (CHROM, POS, REF, ALT, DP, GT) is outputted using `bcftools isec` and `bcftools query`. If requested, the genotypes of these variants in the sample VCF are converted to 0/0 using a custom bash function `convert_gt` (see eggd_CANRISK_vcf.sh for more details).
+The app first identifies variants which were unable to be called via `bcftools filter` using the condition `FORMAT/GT=="./."`. If such variants are found, a .txt file containing a description of the variants (CHROM, POS, REF, ALT, DP, GT) is outputted using `bcftools isec` and `bcftools query`.
 
-Next, the script finds variants in the sample VCF with sub-threshold depth values using `bcftools filter` and the specified depth threshold given via the `depth` input. If requested, the app will then convert the GT values for these variants to 0/0 using the `convert_gt` function and a .txt file describing any such variants is outputted (as described above).
+Next, the script finds variants in the sample VCF with sub-threshold depth values using `bcftools filter` and the specified depth threshold given via the `depth` input.
 
-If a segments VCF is provided via the `segments_vcf` input, it checks for any CNVs that have been called via `bcftools filter` and then for any overlaps of the CNVs with PRS variants in the sample VCF using `bcftools isec`. If requested, it converts the GTs of CNV overlapping variants to 0/0 via the `convert_gt` function and a .txt file is outputted describing these variants (as described above).
+If a segments VCF is provided via the `segments_vcf` input, it checks for any CNVs that have been called via `bcftools filter` and then for any overlaps of the CNVs with PRS variants in the sample VCF using `bcftools isec`.
+
+If requested, genotypes are converted using the `convert_gt` function.
 
 ## What does this app output?
 
