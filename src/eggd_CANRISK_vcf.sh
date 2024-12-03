@@ -91,7 +91,7 @@ main() {
 
         mark-section "Writing coverage check file"
         # write list of affected PRS variants to output file
-        bcftools filter -i "$filter" "$sample_vcf_path" > low_cov_PRS.vcf
+        bcftools filter -i "FORMAT/DP<$depth && CHROM!='X'" "$sample_vcf_path" > low_cov_PRS.vcf
         echo "The following PRS variants are not covered to $depth x read depth:" > "$sample_name"_coverage_check.txt
         echo -e "\n#CHROM\tPOS\tREF\tALT\tDP\tGT" >> "$sample_name"_coverage_check.txt
         # write relevant info about affected variants from filtered VCF
