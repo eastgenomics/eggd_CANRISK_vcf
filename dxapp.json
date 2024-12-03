@@ -2,10 +2,11 @@
   "name": "eggd_canrisk_vcf",
   "title": "eggd_canrisk_vcf",
   "summary": "App to convert VCF output from sentieon Haplotyper for PRS variants to a format compatible with the CANRISK tool",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "whatsNew": {
     "v1.0.0": "Initial release of the app",
-    "v1.1.0": "Optional conversion of uncertain genotypes to 0/0, GT info added to check files and no longer output them if empty, removed exclude variants input"
+    "v1.1.0": "Optional conversion of uncertain genotypes to 0/0, GT info added to check files and no longer output them if empty, removed exclude variants input",
+    "v1.1.1": "Bugfix to handle male samples (single X) by ignoring all X variants (none in PRS anyway). Improved CNV checking to verify segment overlap with PRS variants."
   },
   "dxapi": "1.0.0",
   "authorizedUsers": [

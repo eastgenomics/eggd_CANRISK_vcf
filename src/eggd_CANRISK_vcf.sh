@@ -84,15 +84,14 @@ main() {
 
     mark-section "Checking for low coverage"
     # identify variants with low coverage (below depth threshold input)
-    filter="FORMAT/DP<$depth"
-    bcftools filter -i "$filter" "$sample_vcf_path" | \
+    bcftools filter -i "FORMAT/DP<$depth" "$sample_vcf_path" | \
         bcftools query -f '%CHROM\t%POS\n' > low_dp_coords.tsv
 
     if [ -s low_dp_coords.tsv ]; then
 
         mark-section "Writing coverage check file"
         # write list of affected PRS variants to output file
-        bcftools filter -i "$filter" "$sample_vcf_path" > low_cov_PRS.vcf
+        bcftools filter -i "FORMAT/DP<$depth" "$sample_vcf_path" > low_cov_PRS.vcf
         echo "The following PRS variants are not covered to $depth x read depth:" > "$sample_name"_coverage_check.txt
         echo -e "\n#CHROM\tPOS\tREF\tALT\tDP\tGT" >> "$sample_name"_coverage_check.txt
         # write relevant info about affected variants from filtered VCF
@@ -116,10 +115,14 @@ main() {
         # by converting CNV coordinates to a bed file
         # identify CNVs from the segments VCF (bcftools filter)
         # parse their coordinates to a bed file (bcftools query)
-        bcftools filter -e 'FORMAT/GT=="0/0"' "$segments_vcf_path" | \
+        # check for overlaps between that and the sample (PRS) vcf (bcftools isec)
+        bcftools filter -e 'FORMAT/GT=="0/0" || CHROM=="X"' "$segments_vcf_path" | \
             bcftools query -f '%CHROM\t%POS\t%INFO/END\n' > CNV_coords.bed
-
         if [ -s CNV_coords.bed ]; then
+        bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | bcftools view -H -o CNV_overlaps.tsv
+        fi
+
+        if [ -s CNV_overlaps.tsv ]; then
             mark-section "Writing CNV check file"
 
             # write list of affected PRS variants to output file
@@ -157,7 +160,7 @@ main() {
             echo "Genotypes of low coverage PRS variants were not converted to 0/0"
         fi
     fi
-    if [ -s CNV_coords.bed ]; then
+    if [ -s CNV_overlaps.tsv ]; then
         if $convert_gt_cnv; then
             mark-section "Converting genotype of CNV intersected PRS variants to 0/0"
             convert_gt "$sample_vcf_path" "CNV_coords.bed"
