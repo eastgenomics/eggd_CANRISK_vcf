@@ -119,7 +119,7 @@ main() {
         bcftools filter -e 'FORMAT/GT=="0/0" || CHROM=="X"' "$segments_vcf_path" | \
             bcftools query -f '%CHROM\t%POS\t%INFO/END\n' > CNV_coords.bed
         if [ -s CNV_coords.bed ]; then
-        bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | grep -v ^# > CNV_overlaps.tsv
+        bcftools isec "$sample_vcf_path" -T CNV_coords.bed -w1 | bcftools view -H > CNV_overlaps.tsv
         fi
 
         if [ -s CNV_overlaps.tsv ]; then
